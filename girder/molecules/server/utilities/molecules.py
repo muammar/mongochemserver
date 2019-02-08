@@ -58,7 +58,12 @@ def create_molecule(data_str, input_format, user, public):
         # Whitelist parts of the CJSON that we store at the top level.
         cjsonmol = {}
         cjsonmol['atoms'] = cjson['atoms']
-        cjsonmol['bonds'] = cjson['bonds']
+        # If no bonds property, we create it in the server
+        try:
+            cjsonmol['bonds'] = cjson['bonds']
+        except KeyError:
+            bonds = openbabel.get_bonds(data_str, sdf_format)
+            cjsonmol['bonds'] = bonds['bonds']
         cjsonmol['chemicalJson'] = cjson['chemicalJson']
         mol_dict = {
             'name': chemspider.find_common_name(inchikey, props['formula']),

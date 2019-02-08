@@ -65,3 +65,31 @@ def get_formula(str_data, in_format):
     conv.ReadString(mol, str_data)
 
     return mol.GetFormula()
+
+def get_bonds(str_data, out_format):
+    """Returns connections and bond orders"""
+
+    obMol = OBMol()
+    conv = OBConversion()
+    conv.SetInFormat('inchi')
+    conv.SetOutFormat(out_format)
+    conv.ReadString(obMol, str_data)
+
+    # Generate 3D coordinates for the inchi
+    mol = pybel.Molecule(obMol)
+    mol.make3D()
+    # Bond connections and Bond Orders
+    connections = []
+    bond_orders = []
+    for start in mol.atoms:
+
+        for neighbor in openbabel.OBAtomAtomIter(start.OBAtom):
+            bond_orders.append(neighbor.GetBond(start.OBAtom).GetBO())
+
+        for bond in openbabel.OBAtomBondIter(start.OBAtom):
+            connections.append(bond.GetBeginAtom().GetIdx() - 1)
+            connections.append(bond.GetEndAtom().GetIdx() - 1)
+
+    bonds = {"bonds": { "connections": { "index": connections },
+                                         "order": bond_orders }}
+    return bonds
